@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="false"
+        jar="/Users/apple/AndroidStudioProjects/QQSliderMenus2/app/libs/nineoldandroids-2.4.0.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="25.0.3"
+        sha1="a43cf9e271b5bc564e880a0a4be63ab9c69c97f8">
+        <dex dex="/Users/apple/AndroidStudioProjects/QQSliderMenus2/app/build/intermediates/pre-dexed/debug/nineoldandroids-2.4.0_0a78d40be1d0ccda5922f3b7dc072f15c5726518.jar" />
+    </item>
+
+</items>
