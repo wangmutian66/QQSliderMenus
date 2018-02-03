@@ -5,11 +5,15 @@ import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StyleRes;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+
+import com.nineoldandroids.animation.FloatEvaluator;
+import com.nineoldandroids.view.ViewHelper;
 
 /**
  * Created by wangmutian on 2018/2/3.
@@ -21,6 +25,7 @@ public class SliderMenu extends FrameLayout {
     public ViewDragHelper viewDragHelper;
     public int width;
     private float dragRange;//拖拽范围
+    private FloatEvaluator floatEvaluator;
 
     public SliderMenu(@NonNull Context context) {
         super(context);
@@ -44,6 +49,8 @@ public class SliderMenu extends FrameLayout {
 
     private void init(){
         viewDragHelper = ViewDragHelper.create(this,callback);
+        floatEvaluator = new FloatEvaluator();
+
     }
 
 
@@ -106,9 +113,9 @@ public class SliderMenu extends FrameLayout {
                 if(left<0) return 0;
                 if(left > dragRange) left = (int)dragRange;
             }
-            if(child == menuView){
-                left = left - dx;
-            }
+//            if(child == menuView){
+//                left = left - dx;
+//            }
             return left;
         }
 
@@ -116,14 +123,62 @@ public class SliderMenu extends FrameLayout {
         public void onViewPositionChanged(@NonNull View changedView, int left, int top, int dx, int dy) {
             super.onViewPositionChanged(changedView, left, top, dx, dy);
             if(changedView == menuView){
-                //
+                //固定主menuView
+                menuView.layout(0,0,menuView.getMeasuredWidth(),menuView.getMeasuredHeight());
+                //让mianview移动起来
+                int newleft=mainView.getLeft()+dx;
+                if(newleft<0) newleft=0;
+                if(newleft > dragRange) newleft = (int)dragRange;
+                mainView.layout(newleft,mainView.getTop()+dy,newleft+changedView.getMeasuredWidth(),mainView.getBottom()+dy);
             }
+
+            //1.计算滑动的百分比
+            float fraction  = mainView.getLeft()/dragRange;
+            //2.执行伴随动画
+            executeAnim(fraction);
         }
 
         @Override
         public void onViewReleased(@NonNull View releasedChild, float xvel, float yvel) {
             super.onViewReleased(releasedChild, xvel, yvel);
+            if(mainView.getLeft()<dragRange/2){
+                //在左边
+                viewDragHelper.smoothSlideViewTo(mainView,0,mainView.getTop());
+                ViewCompat.postInvalidateOnAnimation(SliderMenu.this);
+            }else{
+                //在右边
+                viewDragHelper.smoothSlideViewTo(mainView, (int) dragRange,mainView.getTop());
+                ViewCompat.postInvalidateOnAnimation(SliderMenu.this);
+            }
         }
     };
 
+    /**
+     * 执行伴随动画
+     * @param fraction
+     */
+    private void executeAnim(float fraction){
+        //缩小mainView
+        //方法一
+//        float scaleValue = 0.8f+0.2f*(1-fraction);
+//        ViewHelper.setScaleX(mainView,scaleValue);
+//        ViewHelper.setScaleY(mainView,scaleValue);
+        //范围从 1 到 0。8
+        ViewHelper.setScaleX(mainView,floatEvaluator.evaluate(fraction,1f,0.8f));
+        ViewHelper.setScaleY(mainView,floatEvaluator.evaluate(fraction,1f,0.8f));
+
+//        ViewHelper.setTranslationX(menuView,);
+
+
+
+    }
+
+    @Override
+    public void computeScroll() {
+        super.computeScroll();
+        //如果动画没有结束 就在刷新一下
+        if(viewDragHelper.continueSettling(true)){
+            ViewCompat.postInvalidateOnAnimation(SliderMenu.this);
+        }
+    }
 }
