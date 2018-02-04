@@ -177,6 +177,14 @@ public class SliderMenu extends FrameLayout {
                 open();
             }
 
+            //处理用户的稍微滑动
+            if(xvel>200 && currentState!=DragState.Open){
+                open();
+            }else if(xvel< -200 && currentState!=DragState.Close){
+                close();
+            }
+
+
         }
     };
 
