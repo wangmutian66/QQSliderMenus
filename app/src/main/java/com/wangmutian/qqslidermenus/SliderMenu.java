@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.nineoldandroids.animation.FloatEvaluator;
+import com.nineoldandroids.animation.IntEvaluator;
 import com.nineoldandroids.view.ViewHelper;
 
 /**
@@ -25,7 +26,9 @@ public class SliderMenu extends FrameLayout {
     public ViewDragHelper viewDragHelper;
     public int width;
     private float dragRange;//拖拽范围
-    private FloatEvaluator floatEvaluator;
+    private FloatEvaluator floatEvaluator; //一个很牛x的东西可以做计算处理 浮点数计算器
+    private IntEvaluator intevaluator; // 整数计算器
+
 
     public SliderMenu(@NonNull Context context) {
         super(context);
@@ -42,6 +45,7 @@ public class SliderMenu extends FrameLayout {
         init();
     }
 
+    //@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public SliderMenu(@NonNull Context context, @Nullable AttributeSet attrs, @AttrRes int defStyleAttr, @StyleRes int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init();
@@ -50,7 +54,7 @@ public class SliderMenu extends FrameLayout {
     private void init(){
         viewDragHelper = ViewDragHelper.create(this,callback);
         floatEvaluator = new FloatEvaluator();
-
+        intevaluator=new IntEvaluator();
     }
 
 
@@ -167,10 +171,15 @@ public class SliderMenu extends FrameLayout {
         ViewHelper.setScaleX(mainView,floatEvaluator.evaluate(fraction,1f,0.8f));
         ViewHelper.setScaleY(mainView,floatEvaluator.evaluate(fraction,1f,0.8f));
 
-//        ViewHelper.setTranslationX(menuView,);
-
-
-
+        ViewHelper.setTranslationX(menuView,intevaluator.evaluate(fraction,-menuView.getMeasuredWidth()/2,0));
+        ViewHelper.setScaleX(menuView,floatEvaluator.evaluate(fraction,0.5f,1f));
+        ViewHelper.setScaleY(menuView,floatEvaluator.evaluate(fraction,0.5f,1f));
+        //改变menuView 的透明度
+        ViewHelper.setAlpha(menuView,floatEvaluator.evaluate(fraction,0.3f,1f));
+//        ColorUtil;
+        //Mode.SRC_OVER 覆盖在上面
+//        getBackground().setColorFilter(, PorterDuff.Mode.SRC_OVER);
+//        getBackground().setColorFilter((Integer) ColorUtil.evaluateColor(fraction, Color.BLACK,Color.TRANSPARENT), PorterDuff.Mode.SRC_OVER);
     }
 
     @Override
