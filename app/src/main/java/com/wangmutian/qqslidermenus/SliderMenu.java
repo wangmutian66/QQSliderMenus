@@ -51,6 +51,15 @@ public class SliderMenu extends FrameLayout {
         init();
     }
 
+    //定义状态常量
+    enum DragState{
+        Open,Close;
+    }
+
+    //定义变量表示当前状态
+    private DragState currentState = DragState.Close; //当前的SliderMenu的状态 默认是关闭的
+
+
     private void init(){
         viewDragHelper = ViewDragHelper.create(this,callback);
         floatEvaluator = new FloatEvaluator();
@@ -140,6 +149,21 @@ public class SliderMenu extends FrameLayout {
             float fraction  = mainView.getLeft()/dragRange;
             //2.执行伴随动画
             executeAnim(fraction);
+
+            //更改状态回调方法
+            if(fraction == 0 && currentState!=DragState.Close){
+                //更改状态为关闭 并回调关闭的方法
+                currentState = DragState.Close;
+                if(listener!=null) listener.onClose();
+            }else if(fraction==1 && currentState!=DragState.Open){
+                currentState = DragState.Open;
+                if(listener!=null) listener.onOpen();
+            }
+            //将drag的百分比fraction暴漏给外界
+            if(listener!=null){
+                listener.onDraging(fraction);
+            }
+            currentState = DragState.Open;
         }
 
         @Override
@@ -147,15 +171,32 @@ public class SliderMenu extends FrameLayout {
             super.onViewReleased(releasedChild, xvel, yvel);
             if(mainView.getLeft()<dragRange/2){
                 //在左边
-                viewDragHelper.smoothSlideViewTo(mainView,0,mainView.getTop());
-                ViewCompat.postInvalidateOnAnimation(SliderMenu.this);
+                close();
             }else{
                 //在右边
-                viewDragHelper.smoothSlideViewTo(mainView, (int) dragRange,mainView.getTop());
-                ViewCompat.postInvalidateOnAnimation(SliderMenu.this);
+                open();
             }
+
         }
     };
+
+    /**
+     * 打开菜单
+     */
+    public void open(){
+        viewDragHelper.smoothSlideViewTo(mainView, (int) dragRange,mainView.getTop());
+        ViewCompat.postInvalidateOnAnimation(SliderMenu.this);
+    }
+
+    /**
+     * 关闭菜单
+     */
+    public void close(){
+        viewDragHelper.smoothSlideViewTo(mainView,0,mainView.getTop());
+        ViewCompat.postInvalidateOnAnimation(SliderMenu.this);
+    }
+
+
 
     /**
      * 执行伴随动画
@@ -190,4 +231,32 @@ public class SliderMenu extends FrameLayout {
             ViewCompat.postInvalidateOnAnimation(SliderMenu.this);
         }
     }
+
+
+    private onDragStateChangeListener listener;
+    public void setOnDragStateChangeLinstener(onDragStateChangeListener listener){
+        this.listener=listener;
+    }
+    public DragState getCurrentState() {
+        return currentState;
+    }
+
+
+    public interface onDragStateChangeListener{
+        /**
+         * 打开的回调
+         */
+        void onOpen();
+
+        /**
+         * 关闭的回调
+         */
+        void onClose();
+        /**
+         *  拖拽中的回调
+         */
+        void onDraging(float fraction);
+
+    }
+
 }
